@@ -53,7 +53,7 @@ export default function Grid() {
         const node = visitedNodesInOrder[i];
         node.isVisited = true; // Update the state of the node
         const nodeRefKey = `node-${node.row}-${node.col}`;
-        if (nodeRefs.current[nodeRefKey]) {
+        if (!node.isStart && !node.isFinish && nodeRefs.current[nodeRefKey]) {
           nodeRefs.current[nodeRefKey].className = 'node node-visited';
         }
       }, 20 * i);
@@ -65,7 +65,7 @@ export default function Grid() {
       setTimeout(() => {
         const node = nodesInShortestPathOrder[i];
         const nodeRefKey = `node-${node.row}-${node.col}`;
-        if (nodeRefs.current[nodeRefKey]) {
+        if (!node.isStart && !node.isFinish && nodeRefs.current[nodeRefKey]) {
           nodeRefs.current[nodeRefKey].className = 'node node-shortest-path'
         }
       }, 20 * i);
