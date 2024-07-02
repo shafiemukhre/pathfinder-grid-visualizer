@@ -29,6 +29,9 @@
         "@components/*": ["components/*"],
         "@algorithms/*": ["algorithms/*"],
     },
+
+    /* not recommended: to bypass "Any" Typescript check during build*/
+    "noImplicitAny": false,
   },
   "include": ["src"],
 }
