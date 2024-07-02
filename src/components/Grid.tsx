@@ -8,15 +8,35 @@ interface NodeObject {
   isStart: boolean,
   isFinish: boolean,
   isVisited: boolean,
+  isWall: boolean,
 }
 
 export default function Grid() {
-  const [grid, setGrid] = useState<NodeObject[][]>([])
+  const [grid, setGrid] = useState<NodeObject[][]>([]);
+  const [mouseIsPressed, setMouseIsPressed] = useState(false);
   const nodeRefs = useRef<{ [key: string]: HTMLTableCellElement | null }>({});
 
   useEffect(() => {
     setGrid(getInitialGrid())
-  },[])
+  },[]) // only once
+
+
+  function handleMouseDown(row: number, col: number) {
+    const newGrid = getNewGridWithWallToggled(grid, row, col);
+    setMouseIsPressed(true)
+    setGrid(newGrid)
+  }
+
+  function handleMouseEnter(row: number, col: number) {
+    if (!mouseIsPressed) return;
+    console.log('onmouseenter active')
+    const newGrid = getNewGridWithWallToggled(grid, row, col);
+    setGrid(newGrid)
+  }
+
+  function handleMouseUp() {
+    setMouseIsPressed(false);
+  }
 
   function animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder) {
     for (let i = 0; i <= visitedNodesInOrder.length; i++) {
@@ -29,15 +49,9 @@ export default function Grid() {
       }
 
       // in-progress animation
-      // TODO: use react ref or million js
       setTimeout(() => {
         const node = visitedNodesInOrder[i];
         node.isVisited = true; // Update the state of the node
-        // setGrid(prevGrid => {
-        //   const newGrid = [...prevGrid];
-        //   newGrid[node.row][node.col] = { ...node };
-        //   return newGrid;
-        // });
         const nodeRefKey = `node-${node.row}-${node.col}`;
         if (nodeRefs.current[nodeRefKey]) {
           nodeRefs.current[nodeRefKey].className = 'node node-visited';
@@ -54,7 +68,7 @@ export default function Grid() {
         if (nodeRefs.current[nodeRefKey]) {
           nodeRefs.current[nodeRefKey].className = 'node node-shortest-path'
         }
-      }, 50 * i);
+      }, 20 * i);
     }
   }
 
@@ -79,7 +93,7 @@ export default function Grid() {
         {grid.map((row) => (
           <tr key={`row-${row[0].row}`}>
             {row.map((node) => {
-              const {row, col, isFinish, isStart, isVisited} = node;
+              const {row, col, isFinish, isStart, isVisited, isWall} = node;
               const nodeRefKey = `node-${row}-${col}`;
               return (
                 <Node
@@ -90,6 +104,10 @@ export default function Grid() {
                   isStart={isStart}
                   isVisited={isVisited}
                   ref={(el) => (nodeRefs.current[nodeRefKey] = el)}
+                  isWall={isWall}
+                  onMouseDown={(row, col) => handleMouseDown(row, col)}
+                  onMouseEnter={(row, col) => handleMouseEnter(row, col)}
+                  onMouseUp={() => handleMouseUp()}
                 />
               );
             })}
@@ -130,5 +148,17 @@ function createNode(col: number, row: number) {
     distance: Number.POSITIVE_INFINITY,
     isVisited: false,
     previousNode: null,
+    isWall: false,
   }
 }
+
+function getNewGridWithWallToggled(grid, row, col) {
+  const newGrid = grid.slice();
+  const node = newGrid[row][col];
+  const newNode = {
+    ...node,
+    isWall: !node.isWall,
+  };
+  newGrid[row][col] = newNode;
+  return newGrid;
+};
