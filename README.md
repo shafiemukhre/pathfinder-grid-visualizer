@@ -12,17 +12,9 @@ A web app to visualize several Single-Source Shortest Path (SSSP) algorithms.
 
 ### Prerequisite
 
-Install homebrew [[ref](https://brew.sh/)]
-
-```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-
-Install pnpm [[ref](https://pnpm.io/installation#using-homebrew)]
-
-```
-brew install pnpm
-```
+Install a node package manager. `pnpm` is recommended.
+- install homebrew ([ref](https://brew.sh/)) if you are on mac
+- install pnpm ([ref](https://pnpm.io/installation#using-homebrew)) using `brew install pnpm`
 
 ### Run locally
 
