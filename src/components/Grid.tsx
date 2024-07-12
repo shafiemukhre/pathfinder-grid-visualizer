@@ -136,11 +136,11 @@ export default function Grid() {
         visitedNodesInOrder = dijkstra(grid, startNode, finishNode);
         nodesInShortestPathOrder = getNodesInShortestPathOrderFromDijkstra(finishNode);
         break;
-      case 'a-star':
-        // todo
-        visitedNodesInOrder = astar(grid, startNode, finishNode);
-        nodesInShortestPathOrder = getNodesInShortestPathOrderFromAstar(finishNode);
-        break;
+      // case 'a-star':
+      //   // todo
+      //   visitedNodesInOrder = astar(grid, startNode, finishNode);
+      //   nodesInShortestPathOrder = getNodesInShortestPathOrderFromAstar(finishNode);
+      //   break;
       case 'greedy-bfs':
         visitedNodesInOrder = bfs(grid, startNode, finishNode);
         nodesInShortestPathOrder = getNodesInShortestPathOrderFromBFS(finishNode);
@@ -165,7 +165,7 @@ export default function Grid() {
     <>
     <div className="buttons-wrapper">
       <button type="button" onClick={() => visualizeAlgorithm("dijkstra")}>Visualize Dijkstra</button>
-      <button type="button" onClick={() => visualizeAlgorithm("a-star")}>Visualize A*</button>
+      {/* <button type="button" onClick={() => visualizeAlgorithm("a-star")}>Visualize A*</button> */}
       <button type="button" onClick={() => visualizeAlgorithm("greedy-bfs")}>Greedy BFS</button>
       <button type="button" onClick={() => visualizeAlgorithm("bidirectional-swarm")}>Visualize Bidirectional Swarm</button>
       <button type="button" onClick={() => visualizeAlgorithm("dfs")}>Visualize DFS</button>
