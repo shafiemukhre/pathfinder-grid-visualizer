@@ -1,6 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import Node from "./Node";
-import { dijkstra, getNodesInShortestPathOrder } from "@algorithms/dijkstra";
+import { dijkstra, getNodesInShortestPathOrderFromDijkstra } from "@algorithms/dijkstra";
+import { bfs, getNodesInShortestPathOrderFromBFS } from "@algorithms/bfs";
+import { dfs, getNodesInShortestPathOrderFromDFS } from "@algorithms/dfs";
+import { bidirectionalSearch, getNodesInShortestPathOrderFromBidirectional } from "@algorithms/bdfs";
 
 interface NodeObject {
   col: number,
@@ -29,7 +32,6 @@ export default function Grid() {
 
   function handleMouseEnter(row: number, col: number) {
     if (!mouseIsPressed) return;
-    console.log('onmouseenter active')
     const newGrid = getNewGridWithWallToggled(grid, row, col);
     setGrid(newGrid)
   }
@@ -51,10 +53,12 @@ export default function Grid() {
       // in-progress animation
       setTimeout(() => {
         const node = visitedNodesInOrder[i];
-        node.isVisited = true; // Update the state of the node
-        const nodeRefKey = `node-${node.row}-${node.col}`;
-        if (!node.isStart && !node.isFinish && nodeRefs.current[nodeRefKey]) {
-          nodeRefs.current[nodeRefKey].className = 'node node-visited';
+        if (node) {
+          node.isVisited = true; // Update the state of the node
+          const nodeRefKey = `node-${node.row}-${node.col}`;
+          if (!node.isStart && !node.isFinish && nodeRefs.current[nodeRefKey]) {
+            nodeRefs.current[nodeRefKey].className = 'node node-visited';
+          }
         }
       }, 20 * i);
     }
@@ -72,22 +76,101 @@ export default function Grid() {
     }
   }
 
+  function clearGrid() {
+    const newGrid = grid.map(row => 
+      row.map(node => ({
+        ...node,
+        isVisited: false,
+        distance: Infinity,
+        previousNode: null,
+        className: node.isWall ? 'node node-wall' : 'node'
+      }))
+    );
 
-  function visualizeAlgorithm() {
-    console.log('visualizaAlgorithm function is called')
+    for (const row of newGrid) {
+      for (const node of row) {
+        const nodeRefKey = `node-${node.row}-${node.col}`;
+        if (!node.isStart && !node.isFinish && nodeRefs.current[nodeRefKey]) {
+          nodeRefs.current[nodeRefKey].className = node.className;
+        }
+      }
+    }
+
+    setGrid(newGrid);
+  }
+
+  function resetGrid() {
+    const newGrid = grid.map(row => 
+      row.map(node => ({
+        ...node,
+        isVisited: false,
+        distance: Infinity,
+        previousNode: null,
+        isWall: false,
+        className: 'node'
+      }))
+    );
+
+    for (const row of newGrid) {
+      for (const node of row) {
+        const nodeRefKey = `node-${node.row}-${node.col}`;
+        if (!node.isStart && !node.isFinish && nodeRefs.current[nodeRefKey]) {
+          nodeRefs.current[nodeRefKey].className = node.className;
+        }
+      }
+    }
+
+    setGrid(newGrid);
+  }
+
+  function visualizeAlgorithm(algorithm: string) {
+    clearGrid();
+    let visitedNodesInOrder: NodeObject[];
+    let nodesInShortestPathOrder: NodeObject[];
+
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
-    
-    // only for dijkstra for now
-    const visitedNodesInOrder = dijkstra(grid, startNode, finishNode);
-    console.log("visitedNodesInOrder", visitedNodesInOrder);
-    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
+
+    switch (algorithm) {
+      case 'dijkstra':
+        visitedNodesInOrder = dijkstra(grid, startNode, finishNode);
+        nodesInShortestPathOrder = getNodesInShortestPathOrderFromDijkstra(finishNode);
+        break;
+      case 'a-star':
+        // todo
+        visitedNodesInOrder = astar(grid, startNode, finishNode);
+        nodesInShortestPathOrder = getNodesInShortestPathOrderFromAstar(finishNode);
+        break;
+      case 'greedy-bfs':
+        visitedNodesInOrder = bfs(grid, startNode, finishNode);
+        nodesInShortestPathOrder = getNodesInShortestPathOrderFromBFS(finishNode);
+        break;
+      case 'bidirectional-swarm':
+        visitedNodesInOrder = bidirectionalSearch(grid, startNode, finishNode);
+        nodesInShortestPathOrder = getNodesInShortestPathOrderFromBidirectional(finishNode);
+        break;
+      case 'dfs':
+        visitedNodesInOrder = dfs(grid, startNode, finishNode);
+        nodesInShortestPathOrder = getNodesInShortestPathOrderFromDFS(finishNode);
+        break;
+      default:
+        console.error('Unknown algorithm:', algorithm);
+        return;
+    }
+
     animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder);
   }
 
   return (
     <>
-    <button type="button" onClick={() => visualizeAlgorithm()}>Visualize Dijkstra</button>
+    <div className="buttons-wrapper">
+      <button type="button" onClick={() => visualizeAlgorithm("dijkstra")}>Visualize Dijkstra</button>
+      <button type="button" onClick={() => visualizeAlgorithm("a-star")}>Visualize A*</button>
+      <button type="button" onClick={() => visualizeAlgorithm("greedy-bfs")}>Greedy BFS</button>
+      <button type="button" onClick={() => visualizeAlgorithm("bidirectional-swarm")}>Visualize Bidirectional Swarm</button>
+      <button type="button" onClick={() => visualizeAlgorithm("dfs")}>Visualize DFS</button>
+      <button type="button" onClick={() => resetGrid()}>Reset</button>
+    </div>
     <table className="grid">
       <tbody>
         {grid.map((row) => (

@@ -52,7 +52,7 @@ export function dfs(grid, startNode, finishNode) {
   
   // Backtracks from the finishNode to find the shortest path.
   // Only works when called *after* the dfs method above.
-  export function getNodesInShortestPathOrder(finishNode) {
+  export function getNodesInShortestPathOrderFromDFS(finishNode) {
     const nodesInShortestPathOrder = [];
     let currentNode = finishNode;
     while (currentNode !== null) {
