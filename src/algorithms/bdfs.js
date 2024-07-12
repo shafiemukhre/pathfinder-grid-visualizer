@@ -1,4 +1,4 @@
-function bidirectionalSearch(grid, startNode, finishNode) {
+export function bidirectionalSearch(grid, startNode, finishNode) {
     const visitedNodesInOrder = [];
     const startQueue = [startNode];
     const finishQueue = [finishNode];
@@ -76,7 +76,7 @@ function bidirectionalSearch(grid, startNode, finishNode) {
     return nodes;
   }
   
-  function getNodesInShortestPathOrder(startNode, finishNode) {
+  export function getNodesInShortestPathOrderFromBidirectional(startNode, finishNode) {
     const nodesInShortestPathOrder = [];
     let currentNode = finishNode;
   

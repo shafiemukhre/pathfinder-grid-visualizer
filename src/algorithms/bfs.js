@@ -46,7 +46,7 @@ export function bfs(grid, startNode, finishNode) {
   
   // Backtracks from the finishNode to find the shortest path.
   // Only works when called *after* the bfs method above.
-  export function getNodesInShortestPathOrder(finishNode) {
+  export function getNodesInShortestPathOrderFromBFS(finishNode) {
     const nodesInShortestPathOrder = [];
     let currentNode = finishNode;
     while (currentNode !== null) {
