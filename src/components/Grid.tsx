@@ -18,6 +18,7 @@ export default function Grid() {
   const [grid, setGrid] = useState<NodeObject[][]>([]);
   const [mouseIsPressed, setMouseIsPressed] = useState(false);
   const nodeRefs = useRef<{ [key: string]: HTMLTableCellElement | null }>({});
+  const timeouts = useRef<number[]>([]);
 
   useEffect(() => {
     setGrid(getInitialGrid())
@@ -45,13 +46,14 @@ export default function Grid() {
 
       // finale shortest path line
       if (i === visitedNodesInOrder.length) {
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
           animateShortestPath(nodesInShortestPathOrder);
-        }, 20 * i)
+        }, 20 * i);
+        timeouts.current.push(timeout);
       }
 
       // in-progress animation
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         const node = visitedNodesInOrder[i];
         if (node) {
           node.isVisited = true; // Update the state of the node
@@ -61,19 +63,22 @@ export default function Grid() {
           }
         }
       }, 20 * i);
+      timeouts.current.push(timeout);
     }
   }
 
   function animateShortestPath(nodesInShortestPathOrder) {
     for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         const node = nodesInShortestPathOrder[i];
         const nodeRefKey = `node-${node.row}-${node.col}`;
         if (!node.isStart && !node.isFinish && nodeRefs.current[nodeRefKey]) {
           nodeRefs.current[nodeRefKey].className = 'node node-shortest-path'
         }
       }, 20 * i);
+      timeouts.current.push(timeout);
     }
+    
   }
 
   function clearGrid() {
@@ -99,7 +104,13 @@ export default function Grid() {
     setGrid(newGrid);
   }
 
+  function clearTimeouts() {
+    timeouts.current.forEach(timeout => clearTimeout(timeout));
+    timeouts.current = [];
+  }
+
   function resetGrid() {
+    clearTimeouts();
     const newGrid = grid.map(row => 
       row.map(node => ({
         ...node,
@@ -124,6 +135,7 @@ export default function Grid() {
   }
 
   function visualizeAlgorithm(algorithm: string) {
+    clearTimeouts();
     clearGrid();
     let visitedNodesInOrder: NodeObject[];
     let nodesInShortestPathOrder: NodeObject[];
