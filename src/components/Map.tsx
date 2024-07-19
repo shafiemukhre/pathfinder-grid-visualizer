@@ -1,17 +1,20 @@
 import "leaflet/dist/leaflet.css";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from "react-leaflet";
+import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import { DivIcon, Icon, LatLngTuple, LatLng } from "leaflet";
 import placeholderIcon from "../icons/mapPointer.png";
 import { useState, useEffect } from "react";
+import L from "leaflet";
+import "leaflet-routing-machine";
 
-// create custom icon
+// Create custom icon
 const customIcon = new Icon({
   iconUrl: placeholderIcon,
   iconSize: [38, 38] // size of the icon
 });
 
-// custom cluster icon
+// Custom cluster icon
 const createClusterCustomIcon = function (cluster) {
   return new DivIcon({
     html: `<span class="cluster-icon">${cluster.getChildCount()}</span>`,
@@ -20,7 +23,7 @@ const createClusterCustomIcon = function (cluster) {
   });
 };
 
-// markers
+// Markers
 const markers = [
   {
     geocode: [48.86, 2.3522] as LatLngTuple,
@@ -45,115 +48,37 @@ const CaptureClicks = ({ onMapClick }) => {
   return null;
 };
 
-interface Graph {
-  [key: number]: number[];
-}
+const RoutingMachine = ({ source, destination }) => {
+  const map = useMap();
 
-// Dijkstra's algorithm implementation
-// const findShortestPath = (source: LatLng, destination: LatLng, waypoints: LatLng[]): LatLng[] => {
-//   const graph: Graph = {};
+  useEffect(() => {
+    if (!map) return;
 
-//   waypoints.forEach((point, idx) => {
-//     const distances = waypoints.map((otherPoint, otherIdx) => {
-//       if (idx === otherIdx) return Infinity;
-//       return point.distanceTo(otherPoint);
-//     });
-//     graph[idx] = distances;
-//   });
+    let routingControl;
+    if (source && destination) {
+      routingControl = L.Routing.control({
+        waypoints: [source, destination],
+        routeWhileDragging: true
+      }).addTo(map);
+    }
 
-//   const sourceIdx = waypoints.findIndex(point => point.equals(source));
-//   const destIdx = waypoints.findIndex(point => point.equals(destination));
-  
-//   const dist = Array(waypoints.length).fill(Infinity);
-//   const prev = Array(waypoints.length).fill(null);
-//   dist[sourceIdx] = 0;
-
-//   const pq = new Set<number>(waypoints.map((_, idx) => idx));
-
-//   while (pq.size > 0) {
-//     const u = Array.from(pq).reduce((minIdx, idx) => dist[idx] < dist[minIdx] ? idx : minIdx, pq.values().next().value);
-//     pq.delete(u);
-
-//     if (u === destIdx) break;
-
-//     graph[u].forEach((weight, v) => {
-//       if (pq.has(v)) {
-//         const alt = dist[u] + weight;
-//         if (alt < dist[v]) {
-//           dist[v] = alt;
-//           prev[v] = u;
-//         }
-//       }
-//     });
-//   }
-
-//   const path: LatLng[] = [];
-//   for (let at = destIdx; at !== null; at = prev[at]) {
-//     path.push(waypoints[at]);
-//   }
-//   return path.reverse();
-// };
-const findShortestPath = (source: LatLng, destination: LatLng, waypoints: LatLng[]): LatLng[] => {
-  const graph: Graph = {};
-
-  // Build the graph with distances between each waypoint
-  waypoints.forEach((point, idx) => {
-    const distances = waypoints.map((otherPoint, otherIdx) => {
-      if (idx === otherIdx) return Infinity;
-      return point.distanceTo(otherPoint);
-    });
-    graph[idx] = distances;
-  });
-
-  // Find index of source and destination in waypoints array
-  const sourceIdx = waypoints.findIndex(point => point.equals(source));
-  const destIdx = waypoints.findIndex(point => point.equals(destination));
-  
-  // Initialize distances and previous nodes arrays
-  const dist = Array(waypoints.length).fill(Infinity);
-  const prev = Array(waypoints.length).fill(null);
-  dist[sourceIdx] = 0;
-
-  // Priority queue initialized with all waypoints indices
-  const pq = new Set<number>(waypoints.map((_, idx) => idx));
-
-  // Dijkstra's algorithm loop
-  while (pq.size > 0) {
-    const u = Array.from(pq).reduce((minIdx, idx) => dist[idx] < dist[minIdx] ? idx : minIdx, pq.values().next().value);
-    pq.delete(u);
-
-    if (u === destIdx) break;
-
-    graph[u].forEach((weight, v) => {
-      if (pq.has(v)) {
-        const alt = dist[u] + weight;
-        if (alt < dist[v]) {
-          dist[v] = alt;
-          prev[v] = u;
-        }
+    return () => {
+      if (map && routingControl) {
+        map.removeControl(routingControl);
       }
-    });
-  }
+    };
+  }, [map, source, destination]);
 
-  // Extract shortest path by following prev array from destIdx to source
-  const path: LatLng[] = [];
-  for (let at = destIdx; at !== null; at = prev[at]) {
-    path.push(waypoints[at]);
-  }
-
-  return path.reverse();
+  return null;
 };
-
-
 
 export default function App() {
   const defaultPosition = { lat: 48.8566, lng: 2.3522 };
   const [clickCount, setClickCount] = useState(0);
   const [source, setSource] = useState<LatLng | null>(null);
   const [destination, setDestination] = useState<LatLng | null>(null);
-  const [route, setRoute] = useState<LatLng[]>([]);
 
-  const handleMapClick = (latlng) => {
+  const handleMapClick = (latlng: LatLng) => {
     setClickCount((prevCount) => {
       const newCount = prevCount + 1;
       if (prevCount === 0) {
@@ -166,16 +91,6 @@ export default function App() {
       return newCount;
     });
   };
-
-  useEffect(() => {
-    if (source && destination) {
-      console.log("Source:", source);
-      console.log("Destination:", destination);
-      const waypoints = [source, destination, ...markers.map(m => new LatLng(m.geocode[0], m.geocode[1]))];
-      const shortestPath = findShortestPath(source, destination, waypoints);
-      setRoute(shortestPath);
-    }
-  }, [source, destination]);
 
   return (
     <div>
@@ -206,9 +121,7 @@ export default function App() {
           </Marker>
         )}
 
-        {route.length > 0 && (
-          <Polyline positions={route} color="blue" />
-        )}
+        <RoutingMachine source={source} destination={destination} />
       </MapContainer>
 
       <div>
