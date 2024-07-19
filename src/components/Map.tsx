@@ -83,10 +83,8 @@ export default function App() {
       const newCount = prevCount + 1;
       if (prevCount === 0) {
         setSource(latlng);
-        console.log("SOURCE:", latlng);
       } else if (prevCount === 1) {
         setDestination(latlng);
-        console.log("DESTINATION:", latlng);
       }
       return newCount;
     });
