@@ -18,7 +18,7 @@ export default function Grid() {
   const [grid, setGrid] = useState<NodeObject[][]>([]);
   const [mouseIsPressed, setMouseIsPressed] = useState(false);
   const nodeRefs = useRef<{ [key: string]: HTMLTableCellElement | null }>({});
-  const timeouts = useRef<number[]>([]);
+  const timeouts = useRef<any[]>([]);
 
   useEffect(() => {
     setGrid(getInitialGrid())

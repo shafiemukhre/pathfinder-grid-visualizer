@@ -52,15 +52,12 @@ const RoutingMachine = ({ source, destination }) => {
   const map = useMap();
 
   useEffect(() => {
-    if (!map) return;
+    if (!map || !source || !destination) return;
 
-    let routingControl;
-    if (source && destination) {
-      routingControl = L.Routing.control({
-        waypoints: [source, destination],
-        routeWhileDragging: true
-      }).addTo(map);
-    }
+    let routingControl = L.Routing.control({
+      waypoints: [source, destination],
+      routeWhileDragging: true
+    }).addTo(map);
 
     return () => {
       if (map && routingControl) {
@@ -73,21 +70,16 @@ const RoutingMachine = ({ source, destination }) => {
 };
 
 export default function App() {
-  const defaultPosition = { lat: 48.8566, lng: 2.3522 };
-  const [clickCount, setClickCount] = useState(0);
+  const defaultPosition: LatLngTuple = [48.8566, 2.3522];
   const [source, setSource] = useState<LatLng | null>(null);
   const [destination, setDestination] = useState<LatLng | null>(null);
 
   const handleMapClick = (latlng: LatLng) => {
-    setClickCount((prevCount) => {
-      const newCount = prevCount + 1;
-      if (prevCount === 0) {
-        setSource(latlng);
-      } else if (prevCount === 1) {
-        setDestination(latlng);
-      }
-      return newCount;
-    });
+    if (!source) {
+      setSource(latlng);
+    } else if (!destination) {
+      setDestination(latlng);
+    }
   };
 
   return (
