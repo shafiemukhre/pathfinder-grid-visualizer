@@ -5,6 +5,7 @@ import { bfs, getNodesInShortestPathOrderFromBFS } from "@algorithms/bfs";
 import { greedyBFS, getNodesInShortestPathOrderFromGreedyBFS } from "@algorithms/greedy-bfs";
 import { dfs, getNodesInShortestPathOrderFromDFS } from "@algorithms/dfs";
 import { bidirectionalSearch } from "@algorithms/bdfs";
+// import { bidirectionalSwarm, getNodesInShortestPathOrderFromBidirectionalSwarm } from "@algorithms/bidirectional-swarm";
 import { astar, getNodesInShortestPathOrderFromAStar } from "@algorithms/astar";
 
 
@@ -26,6 +27,7 @@ export default function Grid() {
   const [endTime, setEndTime] = useState<Date | null>(null);
   const [duration, setDuration] = useState<string | null>('0 seconds');
   const [algorithmInfo, setAlgorithmInfo] = useState({ nodesVisited: 0, pathLength: 0 });
+  const [algorithm, setAlgorithm] = useState<string | null>(null);
 
   useEffect(() => {
     setGrid(getInitialGrid());
@@ -152,7 +154,7 @@ export default function Grid() {
     setGrid(newGrid);
   }
 
-  function visualizeAlgorithm(algorithm: string) {
+  function visualizeAlgorithm(selectedAlgorithm: string) {
     clearTimeouts();
     clearGrid();
     let visitedNodesInOrder: NodeObject[];
@@ -160,11 +162,13 @@ export default function Grid() {
 
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
+
+    setAlgorithm(selectedAlgorithm);
     setStartTime(new Date());
     setEndTime(null); // Reset endTime to ensure duration calculation runs
     setDuration('Calculating...');
 
-    switch (algorithm) {
+    switch (selectedAlgorithm) {
       case 'dijkstra':
         visitedNodesInOrder = dijkstra(grid, startNode, finishNode);
         nodesInShortestPathOrder = getNodesInShortestPathOrderFromDijkstra(finishNode);
@@ -173,11 +177,15 @@ export default function Grid() {
         visitedNodesInOrder = greedyBFS(grid, startNode, finishNode);
         nodesInShortestPathOrder = getNodesInShortestPathOrderFromGreedyBFS(finishNode);
         break;
-        case 'a-star':
-          visitedNodesInOrder = astar(grid, startNode, finishNode);
-          nodesInShortestPathOrder = getNodesInShortestPathOrderFromAStar(finishNode);
-          break;
-      case 'bidirectional-swarm':
+      case 'a-star':
+        visitedNodesInOrder = astar(grid, startNode, finishNode);
+        nodesInShortestPathOrder = getNodesInShortestPathOrderFromAStar(finishNode);
+        break;
+      // case 'bidirectional-swarm':
+      //   visitedNodesInOrder = bidirectionalSwarm(grid, startNode, finishNode);
+      //   nodesInShortestPathOrder = getNodesInShortestPathOrderFromBidirectionalSwarm(finishNode);
+      //   break;
+      case 'bidirectional-bfs':
         const result = bidirectionalSearch(grid, startNode, finishNode);
         visitedNodesInOrder = result.visitedNodesInOrder;
         nodesInShortestPathOrder = result.nodesInShortestPathOrder;
@@ -191,7 +199,7 @@ export default function Grid() {
         nodesInShortestPathOrder = getNodesInShortestPathOrderFromDFS(finishNode);
         break;
       default:
-        console.error('Unknown algorithm:', algorithm);
+        console.error('Unknown algorithm:', selectedAlgorithm);
         return;
     }
     const nodesVisited = visitedNodesInOrder.length;
@@ -202,19 +210,73 @@ export default function Grid() {
 
   return (
     <>
-      <div className="buttons-wrapper">
-        <button type="button" onClick={() => visualizeAlgorithm("dijkstra")}>Visualize Dijkstra</button>
-        <button type="button" onClick={() => visualizeAlgorithm("a-star")}>Visualize A*</button>
-        <button type="button" onClick={() => visualizeAlgorithm("greedy-bfs")}>Visualize Greedy BFS</button>
-        <button type="button" onClick={() => visualizeAlgorithm("bidirectional-swarm")}>Visualize Bidirectional Swarm</button>
-        <button type="button" onClick={() => visualizeAlgorithm("bfs")}>Visualize BFS</button>
-        <button type="button" onClick={() => visualizeAlgorithm("dfs")}>Visualize DFS</button>
-        <button type="button" onClick={() => resetGrid()}>Reset</button>
-      </div>
-      <div className="result-wrapper">
-        <p>Nodes Visited: {algorithmInfo.nodesVisited}</p>
-        <p>Shortest Path Length: {algorithmInfo.pathLength > 0 ? algorithmInfo.pathLength - 2 : 0}</p>
-        <p>Time Taken: {duration}</p>
+      <div className="panel">
+        <div className="buttons-wrapper">
+          <button
+            type="button"
+            onClick={() => visualizeAlgorithm("dijkstra")}
+            className={algorithm === "dijkstra" ? "--active" : ""}
+          >
+            Visualize Dijkstra
+          </button>
+          <button
+            type="button"
+            onClick={() => visualizeAlgorithm("a-star")}
+            className={algorithm === "a-star" ? "--active" : ""}
+          >
+            Visualize A*
+          </button>
+          <button
+            type="button"
+            onClick={() => visualizeAlgorithm("greedy-bfs")}
+            className={algorithm === "greedy-bfs" ? "--active" : ""}
+          >
+            Visualize Greedy BFS
+          </button>
+          {/* <button
+            type="button"
+            onClick={() => visualizeAlgorithm("bidirectional-swarm")}
+            className={algorithm === "bidirectional-swarm" ? "--active" : ""}
+          >
+            Visualize Bidirectional Swarm
+          </button> */}
+          <button
+            type="button"
+            onClick={() => visualizeAlgorithm("bidirectional-bfs")}
+            className={algorithm === "bidirectional-bfs" ? "--active" : ""}
+          >
+            Visualize Bidirectional BFS
+          </button>
+          <button
+            type="button"
+            onClick={() => visualizeAlgorithm("bfs")}
+            className={algorithm === "bfs" ? "--active" : ""}
+          >
+            Visualize BFS
+          </button>
+          <button
+            type="button"
+            onClick={() => visualizeAlgorithm("dfs")}
+            className={algorithm === "dfs" ? "--active" : ""}
+          >
+            Visualize DFS
+          </button>
+          <button 
+            type="button" 
+            onClick={() => {
+              resetGrid();
+              setAlgorithm(null);
+            }}
+          >
+            Reset
+          </button>
+        </div>
+        <hr/>
+        <div className="result-wrapper">
+          <p>Nodes Visited: {algorithmInfo.nodesVisited}</p>
+          <p>Shortest Path Length: {algorithmInfo.pathLength > 0 ? algorithmInfo.pathLength - 2 : 0}</p>
+          <p>Time Taken: {duration}</p>
+        </div>
       </div>
       <table className="grid">
         <tbody>
@@ -248,7 +310,7 @@ export default function Grid() {
 }
 
 function getInitialGrid() {
-  const ROWS = 20;
+  const ROWS = 21;
   const COLS = 40;
 
   const grid: Array<Array<NodeObject>> = [];
@@ -265,7 +327,7 @@ function getInitialGrid() {
 const START_NODE_ROW = 10;
 const START_NODE_COL = 5;
 const FINISH_NODE_ROW = 10;
-const FINISH_NODE_COL = 35;
+const FINISH_NODE_COL = 34;
 
 function createNode(col: number, row: number) {
   return {
