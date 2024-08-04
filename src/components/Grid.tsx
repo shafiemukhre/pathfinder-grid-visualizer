@@ -3,7 +3,7 @@ import Node from "./Node";
 import { dijkstra, getNodesInShortestPathOrderFromDijkstra } from "@algorithms/dijkstra";
 import { bfs, getNodesInShortestPathOrderFromBFS } from "@algorithms/bfs";
 import { dfs, getNodesInShortestPathOrderFromDFS } from "@algorithms/dfs";
-import { bidirectionalSearch, getNodesInShortestPathOrderFromBidirectional } from "@algorithms/bdfs";
+import { bidirectionalSearch } from "@algorithms/bdfs";
 
 interface NodeObject {
   col: number,
@@ -18,23 +18,33 @@ export default function Grid() {
   const [grid, setGrid] = useState<NodeObject[][]>([]);
   const [mouseIsPressed, setMouseIsPressed] = useState(false);
   const nodeRefs = useRef<{ [key: string]: HTMLTableCellElement | null }>({});
-  const timeouts = useRef<number[]>([]);
+  const timeouts = useRef<any[]>([]);
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [endTime, setEndTime] = useState<Date | null>(null);
+  const [duration, setDuration] = useState<string | null>('0 seconds');
+  const [algorithmInfo, setAlgorithmInfo] = useState({ nodesVisited: 0, pathLength: 0 });
 
   useEffect(() => {
-    setGrid(getInitialGrid())
-  },[]) // only once
+    setGrid(getInitialGrid());
+  }, []); // only once
 
+  useEffect(() => {
+    if (startTime && endTime) {
+      const diffInMilliseconds = endTime.getTime() - startTime.getTime();
+      setDuration(`${(diffInMilliseconds / 1000).toFixed(3)} seconds`);
+    }
+  }, [endTime]);
 
   function handleMouseDown(row: number, col: number) {
     const newGrid = getNewGridWithWallToggled(grid, row, col);
-    setMouseIsPressed(true)
-    setGrid(newGrid)
+    setMouseIsPressed(true);
+    setGrid(newGrid);
   }
 
   function handleMouseEnter(row: number, col: number) {
     if (!mouseIsPressed) return;
     const newGrid = getNewGridWithWallToggled(grid, row, col);
-    setGrid(newGrid)
+    setGrid(newGrid);
   }
 
   function handleMouseUp() {
@@ -43,7 +53,6 @@ export default function Grid() {
 
   function animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder) {
     for (let i = 0; i <= visitedNodesInOrder.length; i++) {
-
       // finale shortest path line
       if (i === visitedNodesInOrder.length) {
         const timeout = setTimeout(() => {
@@ -73,16 +82,20 @@ export default function Grid() {
         const node = nodesInShortestPathOrder[i];
         const nodeRefKey = `node-${node.row}-${node.col}`;
         if (!node.isStart && !node.isFinish && nodeRefs.current[nodeRefKey]) {
-          nodeRefs.current[nodeRefKey].className = 'node node-shortest-path'
+          nodeRefs.current[nodeRefKey].className = 'node node-shortest-path';
+        }
+
+        // If this is the last node in the shortest path, update the end time
+        if (i === nodesInShortestPathOrder.length - 1) {
+          setEndTime(new Date());
         }
       }, 20 * i);
       timeouts.current.push(timeout);
     }
-    
   }
 
   function clearGrid() {
-    const newGrid = grid.map(row => 
+    const newGrid = grid.map(row =>
       row.map(node => ({
         ...node,
         isVisited: false,
@@ -111,7 +124,9 @@ export default function Grid() {
 
   function resetGrid() {
     clearTimeouts();
-    const newGrid = grid.map(row => 
+    setAlgorithmInfo({ nodesVisited: 0, pathLength: 0 });
+    setDuration('0 seconds');
+    const newGrid = grid.map(row =>
       row.map(node => ({
         ...node,
         isVisited: false,
@@ -142,24 +157,23 @@ export default function Grid() {
 
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
+    setStartTime(new Date());
+    setEndTime(null); // Reset endTime to ensure duration calculation runs
+    setDuration('Calculating...');
 
     switch (algorithm) {
       case 'dijkstra':
         visitedNodesInOrder = dijkstra(grid, startNode, finishNode);
         nodesInShortestPathOrder = getNodesInShortestPathOrderFromDijkstra(finishNode);
         break;
-      // case 'a-star':
-      //   // todo
-      //   visitedNodesInOrder = astar(grid, startNode, finishNode);
-      //   nodesInShortestPathOrder = getNodesInShortestPathOrderFromAstar(finishNode);
-      //   break;
       case 'greedy-bfs':
         visitedNodesInOrder = bfs(grid, startNode, finishNode);
         nodesInShortestPathOrder = getNodesInShortestPathOrderFromBFS(finishNode);
         break;
       case 'bidirectional-swarm':
-        visitedNodesInOrder = bidirectionalSearch(grid, startNode, finishNode);
-        nodesInShortestPathOrder = getNodesInShortestPathOrderFromBidirectional(finishNode);
+        const result = bidirectionalSearch(grid, startNode, finishNode);
+        visitedNodesInOrder = result.visitedNodesInOrder;
+        nodesInShortestPathOrder = result.nodesInShortestPathOrder;
         break;
       case 'dfs':
         visitedNodesInOrder = dfs(grid, startNode, finishNode);
@@ -169,49 +183,56 @@ export default function Grid() {
         console.error('Unknown algorithm:', algorithm);
         return;
     }
-
+    const nodesVisited = visitedNodesInOrder.length;
+    const pathLength = nodesInShortestPathOrder.length;
+    setAlgorithmInfo({ nodesVisited, pathLength });
     animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder);
   }
 
   return (
     <>
-    <div className="buttons-wrapper">
-      <button type="button" onClick={() => visualizeAlgorithm("dijkstra")}>Visualize Dijkstra</button>
-      {/* <button type="button" onClick={() => visualizeAlgorithm("a-star")}>Visualize A*</button> */}
-      <button type="button" onClick={() => visualizeAlgorithm("greedy-bfs")}>Greedy BFS</button>
-      <button type="button" onClick={() => visualizeAlgorithm("bidirectional-swarm")}>Visualize Bidirectional Swarm</button>
-      <button type="button" onClick={() => visualizeAlgorithm("dfs")}>Visualize DFS</button>
-      <button type="button" onClick={() => resetGrid()}>Reset</button>
-    </div>
-    <table className="grid">
-      <tbody>
-        {grid.map((row) => (
-          <tr key={`row-${row[0].row}`}>
-            {row.map((node) => {
-              const {row, col, isFinish, isStart, isVisited, isWall} = node;
-              const nodeRefKey = `node-${row}-${col}`;
-              return (
-                <Node
-                  key={`node-${row}-${col}`}
-                  row={row}
-                  col={col}
-                  isFinish={isFinish}
-                  isStart={isStart}
-                  isVisited={isVisited}
-                  ref={(el) => (nodeRefs.current[nodeRefKey] = el)}
-                  isWall={isWall}
-                  onMouseDown={(row, col) => handleMouseDown(row, col)}
-                  onMouseEnter={(row, col) => handleMouseEnter(row, col)}
-                  onMouseUp={() => handleMouseUp()}
-                />
-              );
-            })}
-          </tr>
-        ))}
-      </tbody>
-    </table>
+      <div className="buttons-wrapper">
+        <button type="button" onClick={() => visualizeAlgorithm("dijkstra")}>Visualize Dijkstra</button>
+        {/* <button type="button" onClick={() => visualizeAlgorithm("a-star")}>Visualize A*</button> */}
+        <button type="button" onClick={() => visualizeAlgorithm("greedy-bfs")}>Greedy BFS</button>
+        <button type="button" onClick={() => visualizeAlgorithm("bidirectional-swarm")}>Visualize Bidirectional Swarm</button>
+        <button type="button" onClick={() => visualizeAlgorithm("dfs")}>Visualize DFS</button>
+        <button type="button" onClick={() => resetGrid()}>Reset</button>
+      </div>
+      <div>
+        <p>Nodes Visited: {algorithmInfo.nodesVisited}</p>
+        <p>Shortest Path Length: {algorithmInfo.pathLength > 0 ? algorithmInfo.pathLength - 2 : 0}</p>
+        <p>Time Taken: {duration}</p>
+      </div>
+      <table className="grid">
+        <tbody>
+          {grid.map((row) => (
+            <tr key={`row-${row[0].row}`}>
+              {row.map((node) => {
+                const { row, col, isFinish, isStart, isVisited, isWall } = node;
+                const nodeRefKey = `node-${row}-${col}`;
+                return (
+                  <Node
+                    key={`node-${row}-${col}`}
+                    row={row}
+                    col={col}
+                    isFinish={isFinish}
+                    isStart={isStart}
+                    isVisited={isVisited}
+                    ref={(el) => (nodeRefs.current[nodeRefKey] = el)}
+                    isWall={isWall}
+                    onMouseDown={(row, col) => handleMouseDown(row, col)}
+                    onMouseEnter={(row, col) => handleMouseEnter(row, col)}
+                    onMouseUp={() => handleMouseUp()}
+                  />
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </>
-  )
+  );
 }
 
 function getInitialGrid() {
@@ -244,7 +265,7 @@ function createNode(col: number, row: number) {
     isVisited: false,
     previousNode: null,
     isWall: false,
-  }
+  };
 }
 
 function getNewGridWithWallToggled(grid, row, col) {
@@ -256,4 +277,4 @@ function getNewGridWithWallToggled(grid, row, col) {
   };
   newGrid[row][col] = newNode;
   return newGrid;
-};
+}
