@@ -2,8 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import Node from "./Node";
 import { dijkstra, getNodesInShortestPathOrderFromDijkstra } from "@algorithms/dijkstra";
 import { bfs, getNodesInShortestPathOrderFromBFS } from "@algorithms/bfs";
+import { greedyBFS, getNodesInShortestPathOrderFromGreedyBFS } from "@algorithms/greedy-bfs";
 import { dfs, getNodesInShortestPathOrderFromDFS } from "@algorithms/dfs";
 import { bidirectionalSearch } from "@algorithms/bdfs";
+import { astar, getNodesInShortestPathOrderFromAStar } from "@algorithms/astar";
+
 
 interface NodeObject {
   col: number,
@@ -167,13 +170,21 @@ export default function Grid() {
         nodesInShortestPathOrder = getNodesInShortestPathOrderFromDijkstra(finishNode);
         break;
       case 'greedy-bfs':
-        visitedNodesInOrder = bfs(grid, startNode, finishNode);
-        nodesInShortestPathOrder = getNodesInShortestPathOrderFromBFS(finishNode);
+        visitedNodesInOrder = greedyBFS(grid, startNode, finishNode);
+        nodesInShortestPathOrder = getNodesInShortestPathOrderFromGreedyBFS(finishNode);
         break;
+        case 'a-star':
+          visitedNodesInOrder = astar(grid, startNode, finishNode);
+          nodesInShortestPathOrder = getNodesInShortestPathOrderFromAStar(finishNode);
+          break;
       case 'bidirectional-swarm':
         const result = bidirectionalSearch(grid, startNode, finishNode);
         visitedNodesInOrder = result.visitedNodesInOrder;
         nodesInShortestPathOrder = result.nodesInShortestPathOrder;
+        break;
+      case 'bfs':
+        visitedNodesInOrder = bfs(grid, startNode, finishNode);
+        nodesInShortestPathOrder = getNodesInShortestPathOrderFromBFS(finishNode);
         break;
       case 'dfs':
         visitedNodesInOrder = dfs(grid, startNode, finishNode);
@@ -193,13 +204,14 @@ export default function Grid() {
     <>
       <div className="buttons-wrapper">
         <button type="button" onClick={() => visualizeAlgorithm("dijkstra")}>Visualize Dijkstra</button>
-        {/* <button type="button" onClick={() => visualizeAlgorithm("a-star")}>Visualize A*</button> */}
-        <button type="button" onClick={() => visualizeAlgorithm("greedy-bfs")}>Greedy BFS</button>
+        <button type="button" onClick={() => visualizeAlgorithm("a-star")}>Visualize A*</button>
+        <button type="button" onClick={() => visualizeAlgorithm("greedy-bfs")}>Visualize Greedy BFS</button>
         <button type="button" onClick={() => visualizeAlgorithm("bidirectional-swarm")}>Visualize Bidirectional Swarm</button>
+        <button type="button" onClick={() => visualizeAlgorithm("bfs")}>Visualize BFS</button>
         <button type="button" onClick={() => visualizeAlgorithm("dfs")}>Visualize DFS</button>
         <button type="button" onClick={() => resetGrid()}>Reset</button>
       </div>
-      <div>
+      <div className="result-wrapper">
         <p>Nodes Visited: {algorithmInfo.nodesVisited}</p>
         <p>Shortest Path Length: {algorithmInfo.pathLength > 0 ? algorithmInfo.pathLength - 2 : 0}</p>
         <p>Time Taken: {duration}</p>
