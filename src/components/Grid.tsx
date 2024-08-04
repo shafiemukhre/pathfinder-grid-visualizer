@@ -205,17 +205,17 @@ export default function Grid() {
       <div className="buttons-wrapper">
         <button type="button" onClick={() => visualizeAlgorithm("dijkstra")}>Visualize Dijkstra</button>
         <button type="button" onClick={() => visualizeAlgorithm("a-star")}>Visualize A*</button>
-        <button type="button" onClick={() => visualizeAlgorithm("greedy-bfs")}>Greedy BFS</button>
+        <button type="button" onClick={() => visualizeAlgorithm("greedy-bfs")}>Visualize Greedy BFS</button>
         <button type="button" onClick={() => visualizeAlgorithm("bidirectional-swarm")}>Visualize Bidirectional Swarm</button>
         <button type="button" onClick={() => visualizeAlgorithm("bfs")}>Visualize BFS</button>
         <button type="button" onClick={() => visualizeAlgorithm("dfs")}>Visualize DFS</button>
         <button type="button" onClick={() => resetGrid()}>Reset</button>
       </div>
-      {/* <div>
+      <div className="result-wrapper">
         <p>Nodes Visited: {algorithmInfo.nodesVisited}</p>
         <p>Shortest Path Length: {algorithmInfo.pathLength > 0 ? algorithmInfo.pathLength - 2 : 0}</p>
         <p>Time Taken: {duration}</p>
-      </div> */}
+      </div>
       <table className="grid">
         <tbody>
           {grid.map((row) => (
