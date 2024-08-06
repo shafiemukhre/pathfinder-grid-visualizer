@@ -245,7 +245,7 @@ export default function Grid() {
             onClick={() => visualizeAlgorithm("bidirectional-bfs")}
             className={algorithm === "bidirectional-bfs" ? "--active" : ""}
           >
-            Visualize Bidirectional BFS
+            Visualize Bidirectional Swarm
           </button>
           <button
             type="button"
