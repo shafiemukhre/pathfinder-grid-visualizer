@@ -13,9 +13,9 @@ export default function ResultTable({data}) {
         </tr>
       </thead>
       <tbody>
-        {data.slice().reverse().map((result, index) => (
-          <tr key={data.length - index - 1}>
-            <td>{data.length - index}</td>
+        {data.map((result, index) => (
+          <tr key={index}>
+            <td>{index + 1}</td>
             <td>{result.algorithmName}</td>
             <td className="--centered">{result.nodesVisited}</td>
             <td className="--centered">{result.pathLength}</td>
