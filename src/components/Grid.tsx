@@ -18,7 +18,7 @@ interface NodeObject {
   isWall: boolean,
 }
 
-export default function Grid() {
+export default function Grid({sendToParent}) {
   const [grid, setGrid] = useState<NodeObject[][]>([]);
   const [mouseIsPressed, setMouseIsPressed] = useState(false);
   const nodeRefs = useRef<{ [key: string]: HTMLTableCellElement | null }>({});
@@ -36,8 +36,47 @@ export default function Grid() {
   useEffect(() => {
     if (startTime && endTime) {
       const diffInMilliseconds = endTime.getTime() - startTime.getTime();
-      setDuration(`${(diffInMilliseconds / 1000).toFixed(3)} seconds`);
+      const timeTaken = (diffInMilliseconds / 1000).toFixed(3);
+      setDuration(`${timeTaken} seconds`);
+
+      // pass data to parent component so that we can populate the result table
+      
+      let currentAlgorithmName: string;
+
+      switch (algorithm) {
+        case 'dijkstra':
+          currentAlgorithmName = "Dijkstra";
+          break;
+        case 'a-star':
+          currentAlgorithmName = "A* Search";
+          break;
+        case 'greedy-bfs':
+          currentAlgorithmName = "Greedy BFS";
+          break;
+        case 'bidirectional-bfs':
+          // TODO: change to Bidirectional BFS later and create 
+          currentAlgorithmName = "Bidirectional Swarm";
+          break;
+        case 'bfs':
+          currentAlgorithmName = "Breadth First Search";
+          break;
+        case 'dfs':
+          currentAlgorithmName = "Depth First Search";
+          break;
+        default:
+          currentAlgorithmName = "";
+      }
+
+      const newResult = {
+        algorithmName: currentAlgorithmName,
+        nodesVisited: algorithmInfo.nodesVisited,
+        pathLength: algorithmInfo.pathLength,
+        duration: timeTaken
+      }
+      sendToParent(newResult)
     }
+
+
   }, [endTime]);
 
   function handleMouseDown(row: number, col: number) {

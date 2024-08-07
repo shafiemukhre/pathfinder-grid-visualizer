@@ -1,44 +1,25 @@
-import { useState, useEffect } from 'react';
-
-interface ResultEntry {
-  id: number;
-  nodesVisited: number;
-  shortestPathLength: number;
-  timeTaken: number;
-}
-
-export default function ResultTable() {
-  const [results, setResults] = useState<ResultEntry[]>([]);
-
-  useEffect(() => {
-    const handleAlgorithmComplete = (event: CustomEvent<ResultEntry>) => {
-      setResults(prevResults => [...prevResults, event.detail]);
-    };
-
-    window.addEventListener('algorithmComplete' as any, handleAlgorithmComplete);
-
-    return () => {
-      window.removeEventListener('algorithmComplete' as any, handleAlgorithmComplete);
-    };
-  }, []);
+export default function ResultTable({data}) {
+  console.log(data)
 
   return (
     <table className='result-table'>
       <thead>
         <tr>
           <th>#</th>
-          <th>Nodes Visited</th>
-          <th>Shortest Path Length</th>
-          <th>Time Taken (seconds)</th>
+          <th>Algorithm Name</th>
+          <th className="--centered">Nodes Visited</th>
+          <th className="--centered">Shortest Path Length</th>
+          <th className="--centered">Time Taken (seconds)</th>
         </tr>
       </thead>
       <tbody>
-        {results.map((result, index) => (
-          <tr key={result.id}>
-            <td>{index + 1}</td>
-            <td>{result.nodesVisited}</td>
-            <td>{result.shortestPathLength}</td>
-            <td>{result.timeTaken.toFixed(3)}</td>
+        {data.slice().reverse().map((result, index) => (
+          <tr key={data.length - index - 1}>
+            <td>{data.length - index}</td>
+            <td>{result.algorithmName}</td>
+            <td className="--centered">{result.nodesVisited}</td>
+            <td className="--centered">{result.pathLength}</td>
+            <td className="--centered">{result.duration}</td>
           </tr>
         ))}
       </tbody>
