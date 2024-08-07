@@ -115,16 +115,19 @@ hr {
 }
 
 .result-table {
-  max-width: 1440px;
   font-size: 14px;
+  max-width: calc(28 * 40px);
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
+  margin: 20px auto;
 
   th, td {
     padding: 12px;
     text-align: left;
     border-bottom: 1px solid #e0e0e0;
+    &.--centered {
+      text-align: center;
+    }
   }
 
   th {
